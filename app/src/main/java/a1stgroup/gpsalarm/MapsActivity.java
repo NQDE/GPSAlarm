@@ -3,6 +3,7 @@ package a1stgroup.gpsalarm;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -42,5 +43,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    }
+
+
+    // This method can be used to go to a specific latitude/longitude.
+    private void goToLocation(double lat, double lng) {
+        LatLng coordinates = new LatLng(lat, lng);
+        CameraUpdate camUpdate = CameraUpdateFactory.newLatLng(coordinates);
+        mMap.moveCamera(camUpdate);
+    }
+
+    // This method can be used to zoom map to a particular zoom level.
+    private void zoom(float zoom) {
+        CameraUpdate cameraUpdate = CameraUpdateFactory.zoomTo(zoom);
+        mMap.moveCamera(cameraUpdate);
     }
 }
