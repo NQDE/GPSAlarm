@@ -53,24 +53,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         if (googleServicesAvailable()) {
-            Toast.makeText(this, "Good: Google Services Available!", Toast.LENGTH_LONG).show();
             setContentView(R.layout.activity_maps);
             initMap();
         } else {
             // No Google Maps Supported layout.
         }
-
     }
 
     private void initMap() {
-
         MapFragment myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
-
         myMapFragment.getMapAsync(this);            // Previously getMap
     }
-
 
     public boolean googleServicesAvailable() {
         GoogleApiAvailability api = GoogleApiAvailability.getInstance();
@@ -96,21 +90,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myGoogleMap = googleMap;
 
         if (myGoogleMap != null) {
-
             myGoogleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
                 @Override
                 public void onMarkerDragStart(Marker marker) {
-
                 }
-
                 @Override
                 public void onMarkerDrag(Marker marker) {
-
                 }
-
                 @Override
                 public void onMarkerDragEnd(Marker marker) {
-
                     Geocoder gc = new Geocoder(MapsActivity.this);
                     LatLng coordinates = marker.getPosition();
 
@@ -127,12 +115,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     marker.showInfoWindow();                    // This is needed in case InfoWindow is already open before moving the marker.
                 }
             });
-        }
+            myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener( ){
+                @Override
+                public void onMapLongClick(LatLng point) {
+                    myGoogleMap.addMarker(new MarkerOptions()
+                    .position(point)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                }
 
-
-        if (myGoogleMap != null) {
-            myGoogleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter(){
-
+            });
+            myGoogleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
 
                 @Override
                 public View getInfoWindow(Marker marker) {
@@ -159,15 +151,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             });
         }
-
-
-        goToLocationZoom(57.062133, 24.025366, 15);
-
-
-       /* LatLng sydney = new LatLng(-34, 151);
-        myGoogleMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        myGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));*/
-
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -240,11 +223,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         MarkerOptions options = new MarkerOptions()                 // This MarkerOptions object is needed to add a marker.
-                .title(locality)
                 .draggable(true)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))      // Here it is possible to specify custom icon design.
-                .position(new LatLng(lat, lng))
-                .snippet("I am here!");
+                .position(new LatLng(lat, lng));
 
         myMarker = myGoogleMap.addMarker(options);
 
@@ -360,9 +341,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if(location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
         } else {
-            LatLng coordinates = new LatLng(location.getLatitude(), location.getLongitude());
-            CameraUpdate camUpdate = CameraUpdateFactory.newLatLngZoom(coordinates, 15);
-            myGoogleMap.animateCamera(camUpdate);
+            double lat = location.getLatitude();
+            double lon = location.getLongitude();
+
+
+            //CameraUpdate camUpdate = CameraUpdateFactory.newLatLngZoom(coordinates, 15);
+            //myGoogleMap.animateCamera(camUpdate);
+            //Toast.makeText(this, "Location Updated", Toast.LENGTH_LONG).show();
+
         }
 
     }
