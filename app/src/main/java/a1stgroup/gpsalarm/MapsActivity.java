@@ -275,7 +275,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myMarker.remove();
         myMarker = null;        // To save some space
         myCircle.remove();
-        myCircle = null;
+        myCircle = null;        // memory saving
 
     }
 
