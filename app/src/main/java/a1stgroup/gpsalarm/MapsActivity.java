@@ -1,33 +1,30 @@
 package a1stgroup.gpsalarm;
 
-import android.*;
 import android.Manifest;
 import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.os.Vibrator;
-import android.media.MediaPlayer;
 
 import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -53,36 +50,36 @@ import java.util.List;
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     GoogleMap myGoogleMap;
-    GoogleApiClient myGoogleApiClient;
-    Marker myMarker; // Separate Marker object to allow operations with it.
-    Circle myCircle;
-    MediaPlayer mySound;
-    LocationRequest myLocationRequest;  // Global variable for requesting location
-    public static final double earthRadius = 6372.8; // Radius of Earth, in kilometers
-    private boolean stop = false;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
 
-    //protected void Pause(View view) {
-    //  mySound.stop();
-    //   mySound.release();
-    //}
+    GoogleApiClient myGoogleApiClient;
+   // private android.location.LocationListener locationListener;
+    //LocationManager locationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        final LocationManager manager = (LocationManager) getSystemService( LOCATION_SERVICE );
+
+
         super.onCreate(savedInstanceState);
+        Toast.makeText(this, "ONCREATEE", Toast.LENGTH_LONG).show();
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+            Toast.makeText(this, "so fucking disabled", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(intent);
+            // Call your Alert message
+        }
+
+
+
+
 
         if (googleServicesAvailable()) {
             setContentView(R.layout.activity_maps);
             initMap();
-            mySound = MediaPlayer.create(this, R.raw.annoying);
+        } else {
+            // No Google Maps Supported layout.
         }
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
     }
 
     private void initMap() {
@@ -111,6 +108,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        Toast.makeText(this, "ready", Toast.LENGTH_LONG).show();
         myGoogleMap = googleMap;
 
         if (myGoogleMap != null) {
@@ -118,11 +116,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 @Override
                 public void onMarkerDragStart(Marker marker) {
                 }
-
                 @Override
                 public void onMarkerDrag(Marker marker) {
                 }
-
                 @Override
                 public void onMarkerDragEnd(Marker marker) {
                     Geocoder gc = new Geocoder(MapsActivity.this);
@@ -141,17 +137,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     marker.showInfoWindow();                    // This is needed in case InfoWindow is already open before moving the marker.
                 }
             });
-            myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener( ){
                 @Override
                 public void onMapLongClick(LatLng point) {
-                    if (myMarker != null) {
-                        myGoogleMap.clear();
-                    }
-                    myMarker = myGoogleMap.addMarker(new MarkerOptions()
-                            .position(point)
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-                    myCircle = drawCircle(point);
+                    myGoogleMap.addMarker(new MarkerOptions()
+                    .position(point)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
                 }
+
             });
             myGoogleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
 
@@ -180,18 +173,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             });
         }
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.INTERNET
+                }, 10);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+            }
         }
-
         myGoogleMap.setMyLocationEnabled(true);
 
         myGoogleApiClient = new GoogleApiClient.Builder(this)       // This code is for updating current location
@@ -203,7 +193,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myGoogleApiClient.connect();
 
     }
-
 
     private void goToLocation(double lat, double lng) {
         LatLng coordinates = new LatLng(lat, lng);
@@ -221,6 +210,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         CameraUpdate cameraUpdate = CameraUpdateFactory.zoomTo(zoom);
         myGoogleMap.moveCamera(cameraUpdate);
     }
+
+    Marker myMarker;                                                      // Separate Marker object to allow operations with it.
 
     public void geoLocate(View view) throws IOException {
         EditText et = (EditText) findViewById(R.id.editText);
@@ -242,8 +233,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    Circle myCircle;
+
+
     private void setMarker(String locality, double lat, double lng) {
-        if (myMarker != null) {                                      // If marker marker has a reference, remove it.
+        if(myMarker != null) {                                      // If marker marker has a reference, remove it.
             removeEverything();
         }
 
@@ -255,8 +249,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myMarker = myGoogleMap.addMarker(options);
 
         myCircle = drawCircle(new LatLng(lat, lng));
-
-        stop = false;
     }
 
     private Circle drawCircle(LatLng latLng) {
@@ -275,7 +267,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myMarker.remove();
         myMarker = null;        // To save some space
         myCircle.remove();
-        myCircle = null;        // memory saving
+        myCircle = null;
 
     }
 
@@ -328,13 +320,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .build();
     }
 
+
+    LocationRequest myLocationRequest;                          // Global variable for requesting location
+
+
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        Toast.makeText(this, "Connect", Toast.LENGTH_LONG).show();
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        myLocationRequest.setInterval(4000);
+        myLocationRequest.setInterval(1000);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -358,74 +355,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    double haversine(double lat1, double lon1, double lat2, double lon2) {
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
-        lat1 = Math.toRadians(lat1);
-        lat2 = Math.toRadians(lat2);
-        double a = Math.pow(Math.sin(dLat / 2), 2) + Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
-        double c = 2 * Math.asin(Math.sqrt(a));
-        return earthRadius * c;
-    }
-
-    public void detectRadius() {
-        double lat = myGoogleMap.getMyLocation().getLatitude();
-        double lon = myGoogleMap.getMyLocation().getLongitude();
-        if (myMarker != null && !stop) {
-            if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
-                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                v.vibrate(750);
-                mySound.start();
-                /*AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MapsActivity.this);
-                alertBuilder.setMessage("You have arrived!");
-                alertBuilder.show();
-                alertBuilder.setPositiveButton("Dismiss", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        mySound.release();
-                        stop = true;
-                        dialog.cancel();
-                        removeEverything();
-                    }
-                });
-                alertBuilder.setNegativeButton("Dismiss", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        mySound.release();
-                        stop = true;
-                        dialog.cancel();
-                        removeEverything();
-                    }
-                });*/
-            }
-
-        }
-
-    }
-
     @Override
     public void onLocationChanged(Location location) {          // Called every time user changes location
 
-        if (location == null) {
+        if(location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
         } else {
-            detectRadius();
+           // Toast.makeText(this, "Fu location", Toast.LENGTH_LONG).show();
+
+
+            //CameraUpdate camUpdate = CameraUpdateFactory.newLatLngZoom(coordinates, 15);
+            //myGoogleMap.animateCamera(camUpdate);
+            //Toast.makeText(this, "Location Updated", Toast.LENGTH_LONG).show();
+
         }
 
     }
 
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    public Action getIndexApiAction0() {
-        Thing object = new Thing.Builder()
-                .setName("Maps Page") // TODO: Define a title for the content shown.
-                // TODO: Make sure this auto-generated URL is correct.
-                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
-                .build();
-        return new Action.Builder(Action.TYPE_VIEW)
-                .setObject(object)
-                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
-                .build();
-    }
-}
 
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode){
+        case 10:
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
+            }
+            return;
+        }
+    }
+
+
+}
