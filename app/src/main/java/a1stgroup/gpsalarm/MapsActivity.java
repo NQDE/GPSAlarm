@@ -1,30 +1,27 @@
 package a1stgroup.gpsalarm;
 
-import android.*;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.os.Vibrator;
-import android.media.MediaPlayer;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
@@ -69,7 +66,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     //protected void Pause(View view) {
     //  mySound.stop();
     //   mySound.release();
-    //}
+    ///}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
