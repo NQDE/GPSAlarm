@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- <EditTextPreference android:title="Your Name"
+        android:key="username"
+        android:summary="Please provide your username">
+    </EditTextPreference>
+    <CheckBoxPreference android:title="Application Updates"
+        android:defaultValue="false"
+        android:summary="This option if selected will allow the application to check for latest versions."
+        android:key="applicationUpdates" /> -->
+
+    <ListPreference
+        android:title="Alarm Radius"
+        android:summary="Choose the distance to destination \nat which alarms should be triggered"
+        android:key="alarmRadius"
+        android:defaultValue="500"
+        android:entries="@array/alarmRadiusMenuEntries"
+        android:entryValues="@array/alarmRadiusValues" />
+
+    <ListPreference
+        android:title="Map Type"
+        android:summary="Select from different types of Google Maps"
+        android:key="mapType"
+        android:defaultValue="3"
+        android:entries="@array/mapTypeMenuEntries"
+        android:entryValues="@array/mapTypeValues" />
+</PreferenceScreen>
