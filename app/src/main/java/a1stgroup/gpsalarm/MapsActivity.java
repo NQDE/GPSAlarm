@@ -3,6 +3,8 @@ package a1stgroup.gpsalarm;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
@@ -12,6 +14,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -51,12 +54,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     GoogleMap myGoogleMap;
     GoogleApiClient myGoogleApiClient;
-    Marker myMarker; // Separate Marker object to allow operations with it.
+    Marker myMarker;    // Separate Marker object to allow operations with it.
     Circle myCircle;
+    int alarmRadius;    // Used by markers. Can now be set through preferences.
     MediaPlayer mySound;
     LocationRequest myLocationRequest;  // Global variable for requesting location
     public static final double earthRadius = 6372.8; // Radius of Earth, in kilometers
     private boolean stop = false;
+    private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -68,6 +73,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     //   mySound.release();
     ///}
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,15 +82,37 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             setContentView(R.layout.activity_maps);
             initMap();
             mySound = MediaPlayer.create(this, R.raw.annoying);
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+            setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
+
+            prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+                public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+
+                    if (key.equals("mapType")) {
+                        changeMapType(prefs.getString(key, "2"));
+                    }
+                    if (key.equals("alarmRadius")) {
+                        setAlarmRadius(Integer.parseInt(prefs.getString(key, "500")));
+                        myGoogleMap.clear();
+                    }
+                }
+            };
+
+            prefs.registerOnSharedPreferenceChangeListener(prefListener);
+
         }
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
     }
+
 
     private void initMap() {
         MapFragment myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
         myMapFragment.getMapAsync(this);            // Previously getMap
+
     }
 
     public boolean googleServicesAvailable() {
@@ -111,6 +139,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myGoogleMap = googleMap;
 
         if (myGoogleMap != null) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+            changeMapType(prefs.getString("mapType", "2"));
             myGoogleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
                 @Override
                 public void onMarkerDragStart(Marker marker) {
@@ -225,7 +255,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Geocoder gc = new Geocoder(this);                               // Takes any string and converts to latitude / longitude.
 
-        List<Address> list = gc.getFromLocationName(location, 1);       // 1 result
+        List<Address> list = gc.getFromLocationName(location, 1);       // We choose just 1 result
+
         Address address = list.get(0);                                  // This object is filled with lots of information.
         String locality = address.getLocality();                        // Locality here just for demonstartion purposes.
 
@@ -236,7 +267,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         goToLocationZoom(lat, lng, 15);
 
         setMarker(locality, lat, lng);
-
     }
 
     private void setMarker(String locality, double lat, double lng) {
@@ -260,7 +290,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         CircleOptions circleOptions = new CircleOptions()
                 .center(latLng)
-                .radius(1000)
+                .radius(alarmRadius)
                 .fillColor(0x33FF0000)              // 33 for alpha (transparency)
                 .strokeColor(Color.BLUE)
                 .strokeWidth(3);
@@ -280,34 +310,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onCreateOptionsMenu(Menu menu) {
 
         getMenuInflater().inflate(R.menu.menu, menu);
-        return super.onCreateOptionsMenu(menu);
+        return super.onCreateOptionsMenu(menu);         // More on this line: http://stackoverflow.com/questions/10303898/oncreateoptionsmenu-calling-super
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.mapTypeNone:
-                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_NONE);
-                break;
-            case R.id.mapTypeNormal:
-                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                break;
-            case R.id.mapTypeSatellite:
-                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-                break;
-            case R.id.mapTypeTerrain:
-                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
-                break;
-            case R.id.mapTypeHybrid:
-                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-                break;
 
+        switch (item.getItemId()) {
+            case R.id.menuItemSettings:
+                // Toast.makeText(this, "Settings!", Toast.LENGTH_SHORT).show();
+                Intent i = new Intent(this, MyPreferencesActivity.class);
+                startActivity(i);
+                return true;
             default:
-                break;
+                return super.onOptionsItemSelected(item);
         }
 
-        return super.onOptionsItemSelected(item);
     }
+
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -366,7 +386,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void detectRadius() {
-        double lat = myGoogleMap.getMyLocation().getLatitude();
+        double lat = myGoogleMap.getMyLocation().getLatitude();             // Deprecated. Possible solution: http://stackoverflow.com/questions/23104089/googlemap-getmylocation-cannot-get-current-location
         double lon = myGoogleMap.getMyLocation().getLongitude();
         if (myMarker != null && !stop) {
             if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
@@ -424,5 +444,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setActionStatus(Action.STATUS_TYPE_COMPLETED)
                 .build();
     }
+
+    public void changeMapType(String type) {
+        switch (type) {
+            case "1":
+                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_NONE);
+                break;
+            case "2":
+                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                break;
+            case "3":
+                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+                break;
+            case "4":
+                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                break;
+            case "5":
+                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+                break;
+        }
+    }
+
+    public void setAlarmRadius(int newRadius) {
+        alarmRadius = newRadius;
+    }
+
 }
 

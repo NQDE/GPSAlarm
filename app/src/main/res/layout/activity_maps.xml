@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/editText"
-        android:hint="New destination"
+        android:hint="Search here or press on map to add marker"
         android:layout_gravity="center_horizontal" />
 
     <Button
