@@ -257,8 +257,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         List<Address> list = gc.getFromLocationName(location, 1);       // We choose just 1 result
 
+        if (list.size() < 1) {                                          // Prevents app from crashing on non-existent search results.
+            Toast.makeText(this, "No such location found. \nTry a different keyword.", Toast.LENGTH_LONG).show();
+            et.getText().clear();
+            return;
+        }
+
         Address address = list.get(0);                                  // This object is filled with lots of information.
-        String locality = address.getLocality();                        // Locality here just for demonstartion purposes.
+        String locality = address.getLocality();                        // Locality here just for demonstration purposes.
 
         Toast.makeText(this, locality, Toast.LENGTH_LONG).show();
 
