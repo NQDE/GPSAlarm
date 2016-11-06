@@ -50,6 +50,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.io.IOException;
 import java.util.List;
 
+import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
+
+
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     GoogleMap myGoogleMap;
@@ -58,6 +61,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     Circle myCircle;
     int alarmRadius;    // Used by markers. Can now be set through preferences.
     MediaPlayer mySound;
+    static String ringtonePath;
     LocationRequest myLocationRequest;  // Global variable for requesting location
     public static final double earthRadius = 6372.8; // Radius of Earth, in kilometers
     private boolean stop = false;
@@ -81,10 +85,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (googleServicesAvailable()) {
             setContentView(R.layout.activity_maps);
             initMap();
-            mySound = MediaPlayer.create(this, R.raw.annoying);
+
+            // mySound = MediaPlayer.create(this, R.raw.annoying);      // Promoted to method initSound() to function with preferences.
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
+            ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
+            initSound();
+
 
             prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
                 public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
@@ -95,6 +103,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (key.equals("alarmRadius")) {
                         setAlarmRadius(Integer.parseInt(prefs.getString(key, "500")));
                         myGoogleMap.clear();
+                    }
+                    if (key.equals("alarmRingtone")) {
+                        ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
+                        initSound();
                     }
                 }
             };
@@ -257,14 +269,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         List<Address> list = gc.getFromLocationName(location, 1);       // We choose just 1 result
 
-        if (list.size() < 1) {                                          // Prevents app from crashing on non-existent search results.
+        if (list.size() < 1) {                                          // Prevents search from crashing on non-existent results.
             Toast.makeText(this, "No such location found. \nTry a different keyword.", Toast.LENGTH_LONG).show();
             et.getText().clear();
             return;
         }
 
         Address address = list.get(0);                                  // This object is filled with lots of information.
-        String locality = address.getLocality();                        // Locality here just for demonstration purposes.
+        String locality = address.getLocality();                        // Locality here just for demonstartion purposes.
 
         Toast.makeText(this, locality, Toast.LENGTH_LONG).show();
 
@@ -432,7 +444,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             detectRadius();
         }
-
     }
 
     /**
@@ -473,6 +484,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void setAlarmRadius(int newRadius) {
         alarmRadius = newRadius;
+    }
+
+    public void initSound() {
+        mySound = MediaPlayer.create(this, Uri.parse(ringtonePath));
     }
 
 }

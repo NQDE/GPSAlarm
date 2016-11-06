@@ -10,6 +10,15 @@
         android:summary="This option if selected will allow the application to check for latest versions."
         android:key="applicationUpdates" /> -->
 
+
+    <RingtonePreference
+        android:title="Alarm Tone"
+        android:summary="Select a custom tone for the alarm \nor leave it to your phone's default alarm tone"
+        android:key="alarmRingtone"
+        android:ringtoneType="alarm|ringtone"
+        android:showSilent="false" />
+        <!-- android:defaultValue="Settings.System.DEFAULT_RINGTONE_URI" -->
+
     <ListPreference
         android:title="Alarm Radius"
         android:summary="Choose the distance to destination \nat which alarms should be triggered"

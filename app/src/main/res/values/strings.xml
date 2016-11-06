@@ -2,6 +2,7 @@
     <string name="app_name">GPSAlarm</string>
     <string name="title_activity_maps">Map</string>
 
-
-    <string name="menu_item_settings">Settings...</string>
+    <string name="menu_item_settings">Settings&#8230;</string>
+    <string name="search_hint">Search or press on map to add marker</string>
+    <string name="search_button_text">Go</string>
 </resources>

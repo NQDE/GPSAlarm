@@ -2,11 +2,12 @@ package a1stgroup.gpsalarm;
 
 
 
+import android.app.ActionBar;
 import android.os.Bundle;
-import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
+import android.support.v7.app.AppCompatActivity;
 
-public class MyPreferencesActivity extends PreferenceActivity {
+public class MyPreferencesActivity extends AppCompatActivity {
 
 
     @Override

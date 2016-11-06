@@ -36,7 +36,7 @@ public class PlaySound extends MapsActivity {
 
     }
 
-    public void playSound () {
+    public void playSound() {
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         float actualVolume = (float) audioManager
                 .getStreamVolume(AudioManager.STREAM_MUSIC);

@@ -12,13 +12,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/editText"
-        android:hint="Search here or press on map to add marker"
+        android:hint="@string/search_hint"
         android:layout_gravity="center_horizontal" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Go"
+        android:text="@string/search_button_text"
         android:id="@+id/button"
         android:onClick="geoLocate"
         android:layout_gravity="center_horizontal"/>
