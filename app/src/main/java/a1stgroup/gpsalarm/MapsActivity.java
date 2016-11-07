@@ -102,7 +102,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                     if (key.equals("alarmRadius")) {
                         setAlarmRadius(Integer.parseInt(prefs.getString(key, "500")));
-                        myGoogleMap.clear();
+                        removeEverything();
                     }
                     if (key.equals("alarmRingtone")) {
                         ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
@@ -180,18 +180,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     marker.showInfoWindow();                    // This is needed in case InfoWindow is already open before moving the marker.
                 }
             });
+
             myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
                 public void onMapLongClick(LatLng point) {
                     if (myMarker != null) {
                         myGoogleMap.clear();
                     }
-                    myMarker = myGoogleMap.addMarker(new MarkerOptions()
+
+                    setMarker("Location", point.latitude, point.longitude);
+                    /*myMarker = myGoogleMap.addMarker(new MarkerOptions()
                             .position(point)
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-                    myCircle = drawCircle(point);
+                    myCircle = drawCircle(point);*/
                 }
             });
+
             myGoogleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
 
                 @Override
@@ -207,6 +211,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     TextView tvLat = (TextView) v.findViewById(R.id.tv_lat);
                     TextView tvLng = (TextView) v.findViewById(R.id.tv_lng);
                     TextView tvSnippet = (TextView) v.findViewById(R.id.tv_snippet);
+
+
 
                     LatLng coordinates = marker.getPosition();
 
@@ -294,7 +300,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         MarkerOptions options = new MarkerOptions()                 // This MarkerOptions object is needed to add a marker.
                 .draggable(true)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))      // Here it is possible to specify custom icon design.
+                .title(locality)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))      // Here it is possible to specify custom icon design.
                 .position(new LatLng(lat, lng));
 
         myMarker = myGoogleMap.addMarker(options);
@@ -317,11 +324,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void removeEverything() {
-        myMarker.remove();
-        myMarker = null;        // To save some space
-        myCircle.remove();
-        myCircle = null;        // memory saving
-
+        if (myMarker != null) {
+            myMarker.remove();
+            myMarker = null;        // To save some space
+            if (myCircle != null) {
+                myCircle.remove();
+                myCircle = null;        // memory saving
+            }
+        }
     }
 
     @Override
@@ -362,6 +372,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setActionStatus(Action.STATUS_TYPE_COMPLETED)
                 .build();
     }
+
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
