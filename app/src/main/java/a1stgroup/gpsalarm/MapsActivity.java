@@ -453,7 +453,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
         } else {
-            detectRadius();
+//            detectRadius();
         }
     }
 
