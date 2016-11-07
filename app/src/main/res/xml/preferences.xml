@@ -31,7 +31,7 @@
         android:title="Map Type"
         android:summary="Select from different types of Google Maps"
         android:key="mapType"
-        android:defaultValue="3"
+        android:defaultValue="2"
         android:entries="@array/mapTypeMenuEntries"
         android:entryValues="@array/mapTypeValues" />
 </PreferenceScreen>
