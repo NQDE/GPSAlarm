@@ -68,6 +68,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean stop = false;
     private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
+    static long locationUpdateFrequency = 5000;
+    TrackerAlarmReceiver alarm = new TrackerAlarmReceiver();
+
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -111,14 +114,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             };
 
             prefs.registerOnSharedPreferenceChangeListener(prefListener);
+            Intent mapIntent = new Intent(this, TrackerAlarmReceiver.class);
+
+
 
         }
+
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 
     }
-
 
     private void initMap() {
         MapFragment myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
@@ -187,6 +193,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         myGoogleMap.clear();
                     }
 
+                    alarm.setAlarm(MapsActivity.this);
+
                     setMarker("Location", point.latitude, point.longitude);
                     /*myMarker = myGoogleMap.addMarker(new MarkerOptions()
                             .position(point)
@@ -210,7 +218,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     TextView tvLat = (TextView) v.findViewById(R.id.tv_lat);
                     TextView tvLng = (TextView) v.findViewById(R.id.tv_lng);
                     TextView tvSnippet = (TextView) v.findViewById(R.id.tv_snippet);
-
 
 
                     LatLng coordinates = marker.getPosition();
@@ -355,7 +362,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             default:
                 return super.onOptionsItemSelected(item);
         }
-
     }
 
 
@@ -380,20 +386,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onConnected(@Nullable Bundle bundle) {
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        myLocationRequest.setInterval(4000);
+        myLocationRequest.setInterval(10000);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // /to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                        PackageManager.PERMISSION_GRANTED) {
             return;
         }
-
         LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
+    }
+
+    protected void trackLocation() {
+        myLocationRequest = LocationRequest.create();
+        myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        myLocationRequest.setInterval(1000);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
+        }
     }
 
     @Override
@@ -425,9 +436,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 v.vibrate(750);
                 mySound.start();
             }
-
         }
-
     }
 
     @Override
@@ -444,6 +453,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
+
     public Action getIndexApiAction0() {
         Thing object = new Thing.Builder()
                 .setName("Maps Page") // TODO: Define a title for the content shown.
