@@ -79,7 +79,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     //   mySound.release();
     ///}
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,8 +86,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (googleServicesAvailable()) {
             setContentView(R.layout.activity_maps);
             initMap();
-
-            // mySound = MediaPlayer.create(this, R.raw.annoying);      // Promoted to method initSound() to function with preferences.
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
@@ -352,7 +349,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(i);
                 return true;
             case R.id.menuItemSettings:
-                // Toast.makeText(this, "Settings!", Toast.LENGTH_SHORT).show();
                 Intent j = new Intent(this, MyPreferencesActivity.class);
                 startActivity(j);
                 return true;
@@ -420,33 +416,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return earthRadius * c;
     }
 
-    public void detectRadius() {
-        double lat = myGoogleMap.getMyLocation().getLatitude();             // Deprecated. Possible solution: http://stackoverflow.com/questions/23104089/googlemap-getmylocation-cannot-get-current-location
-        double lon = myGoogleMap.getMyLocation().getLongitude();
+    public void detectRadius(Location location) {
+        double lat = location.getLatitude();
+        double lon = location.getLongitude();
         if (myMarker != null && !stop) {
             if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(750);
                 mySound.start();
-                /*AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MapsActivity.this);
-                alertBuilder.setMessage("You have arrived!");
-                alertBuilder.show();
-                alertBuilder.setPositiveButton("Dismiss", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        mySound.release();
-                        stop = true;
-                        dialog.cancel();
-                        removeEverything();
-                    }
-                });
-                alertBuilder.setNegativeButton("Dismiss", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        mySound.release();
-                        stop = true;
-                        dialog.cancel();
-                        removeEverything();
-                    }
-                });*/
             }
 
         }
@@ -459,7 +436,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
         } else {
-            detectRadius();
+            detectRadius(location);
         }
     }
 
