@@ -3,6 +3,7 @@ package a1stgroup.gpsalarm;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -18,7 +19,9 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -46,6 +49,7 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.GoogleMap.OnInfoWindowLongClickListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,7 +58,7 @@ import java.util.List;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, OnInfoWindowLongClickListener {
 
     GoogleMap myGoogleMap;
     GoogleApiClient myGoogleApiClient;
@@ -157,6 +161,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (myGoogleMap != null) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             changeMapType(prefs.getString("mapType", "2"));
+
             myGoogleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
                 @Override
                 public void onMarkerDragStart(Marker marker) {
@@ -193,10 +198,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
 
                     setMarker("Location", point.latitude, point.longitude);
-                    /*myMarker = myGoogleMap.addMarker(new MarkerOptions()
-                            .position(point)
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-                    myCircle = drawCircle(point);*/
+                    /* TODO
+                    * Extract location information from marker
+                    * */
                 }
             });
 
@@ -228,6 +232,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     return v;
                 }
             });
+
+            myGoogleMap.setOnInfoWindowLongClickListener(this);
+
         }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -266,10 +273,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myGoogleMap.moveCamera(camUpdate);
     }
 
-    private void zoom(float zoom) {
+    /*private void zoomToMyLocation(float zoom) {
         CameraUpdate cameraUpdate = CameraUpdateFactory.zoomTo(zoom);
         myGoogleMap.moveCamera(cameraUpdate);
-    }
+    }*/
 
     public void geoLocate(View view) throws IOException {
         EditText et = (EditText) findViewById(R.id.editText);
@@ -361,6 +368,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return super.onOptionsItemSelected(item);
         }
 
+    }
+
+    public void onInfoWindowLongClick(Marker marker) {
+        Toast.makeText(this, "Info Window long click", Toast.LENGTH_SHORT).show();
+
+        View myView = (LayoutInflater.from(this)).inflate(R.layout.dialog_inputname, null);
+
+        AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
+        alertBuilder.setView(myView);
+        final EditText userInput = (EditText) myView.findViewById(R.id.etxtInputName);
+
+        alertBuilder.setCancelable(true)
+                .setTitle("New Alarm")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        addMarkerDataToList(userInput.getText().toString());
+                    }
+                });
+        Dialog myDialog = alertBuilder.create();
+        myDialog.show();
     }
 
 
@@ -492,6 +520,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void initSound() {
         mySound = MediaPlayer.create(this, Uri.parse(ringtonePath));
+    }
+
+    public void addMarkerDataToList (String name) {
+        MarkerData toBeAdded = new MarkerData();
+        toBeAdded.setName(name);
+        if (markerDataList.add(toBeAdded))
+            Toast.makeText(this, "Alarm saved.", Toast.LENGTH_SHORT).show();
+        else
+            Toast.makeText(this, "Alarm not saved.", Toast.LENGTH_SHORT).show();
     }
 
 }
