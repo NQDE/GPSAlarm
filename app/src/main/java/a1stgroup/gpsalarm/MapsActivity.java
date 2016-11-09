@@ -64,6 +64,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     MediaPlayer mySound;
     static String ringtonePath;
     LocationRequest myLocationRequest;  // Global variable for requesting location
+    long locationUpdateFrequency;
     public static final double earthRadius = 6372.8; // Radius of Earth, in kilometers
     private boolean stop = false;
     private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
@@ -89,6 +90,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
+            setLocationUpdateFrequency(Long.parseLong(prefs.getString("locationUpdateFrequency", "10000")));
             ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
             initSound();
 
@@ -106,6 +108,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (key.equals("alarmRingtone")) {
                         ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
                         initSound();
+                    }
+                    if (key.equals("locationUpdateFrequency")) {
+                        setLocationUpdateFrequency(Long.parseLong(prefs.getString("locationUpdateFrequency", "10000")));
                     }
                 }
             };
@@ -380,7 +385,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onConnected(@Nullable Bundle bundle) {
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        myLocationRequest.setInterval(4000);
+        myLocationRequest.setInterval(locationUpdateFrequency);
+        myLocationRequest.setFastestInterval(locationUpdateFrequency/4);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -478,6 +484,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void setAlarmRadius(int newRadius) {
         alarmRadius = newRadius;
+    }
+
+    public void setLocationUpdateFrequency(long newFrequency) {
+        locationUpdateFrequency = newFrequency;
     }
 
     public void initSound() {

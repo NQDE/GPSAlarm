@@ -24,4 +24,14 @@
         android:defaultValue="2"
         android:entries="@array/mapTypeMenuEntries"
         android:entryValues="@array/mapTypeValues" />
+
+    <ListPreference
+        android:title="Location Update Frequency"
+        android:summary="Set the time between location update requests \nfrom the application. \nLook for a balance between precision and battery drain to suit your usage scenarios. \nThis setting will be overridden if your device possesses location data brought in by another application. In such cases GPSAlarm will refresh your position more frequently."
+        android:key="locationUpdateFrequency"
+        android:defaultValue="10000"
+        android:entries="@array/updateFrequencyMenuEntries"
+        android:entryValues="@array/updateFrequencyValues" />
+
+
 </PreferenceScreen>
