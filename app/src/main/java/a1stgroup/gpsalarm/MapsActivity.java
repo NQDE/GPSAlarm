@@ -48,6 +48,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
@@ -66,6 +67,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static final double earthRadius = 6372.8; // Radius of Earth, in kilometers
     private boolean stop = false;
     private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
+    static ArrayList<MarkerData> markerDataList = new ArrayList<>();
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -345,10 +347,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
+            case R.id.menuItemMyAlarms:
+                Intent i = new Intent(this, ListActivity.class);
+                startActivity(i);
+                return true;
             case R.id.menuItemSettings:
                 // Toast.makeText(this, "Settings!", Toast.LENGTH_SHORT).show();
-                Intent i = new Intent(this, MyPreferencesActivity.class);
-                startActivity(i);
+                Intent j = new Intent(this, MyPreferencesActivity.class);
+                startActivity(j);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

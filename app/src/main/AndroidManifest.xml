@@ -40,6 +40,10 @@
             android:name=".MyPreferencesActivity"
             android:parentActivityName=".MapsActivity"
             android:label="Settings"/>
+        <activity
+            android:name=".ListActivity"
+            android:parentActivityName=".MapsActivity"
+            android:label="My Alarms"/>
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
