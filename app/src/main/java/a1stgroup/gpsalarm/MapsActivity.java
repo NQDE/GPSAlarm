@@ -310,7 +310,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         MarkerOptions options = new MarkerOptions()                 // This MarkerOptions object is needed to add a marker.
-                .draggable(true)
+                .draggable(false)
                 .title(locality)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))      // Here it is possible to specify custom icon design.
                 .position(new LatLng(lat, lng));
@@ -414,6 +414,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onConnected(@Nullable Bundle bundle) {
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        /* TODO
+        Change priority to balanced
+         */
         myLocationRequest.setInterval(locationUpdateFrequency);
         myLocationRequest.setFastestInterval(locationUpdateFrequency/4);
 
