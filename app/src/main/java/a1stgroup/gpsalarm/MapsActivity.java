@@ -23,6 +23,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -64,7 +65,7 @@ import java.util.List;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, OnInfoWindowLongClickListener {
 
     GoogleMap myGoogleMap;
     GoogleApiClient myGoogleApiClient;
@@ -74,7 +75,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     MediaPlayer mySound;
     static String ringtonePath;
     LocationRequest myLocationRequest;  // Global variable for requesting location
-    long locationUpdateFrequency;
+    static long locationUpdateFrequency;
     public static final double earthRadius = 6372.8; // Radius of Earth, in kilometers
     private boolean stop = false;
     private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
