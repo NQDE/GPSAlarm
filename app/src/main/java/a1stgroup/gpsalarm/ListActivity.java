@@ -16,7 +16,7 @@ public class ListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
-        ListAdapter myAdapter = new MyCustomizedAdapter(this, MapsActivity.markerDataList);
+        final ListAdapter myAdapter = new MyCustomizedAdapter(this, MapsActivity.markerDataList);
 
         ListView myListView = (ListView) findViewById(R.id.idOfListView);
 
@@ -28,6 +28,10 @@ public class ListActivity extends AppCompatActivity {
 
                 String pickedWord = "You touched " + String.valueOf(adapterView.getItemAtPosition(i));
                 Toast.makeText(ListActivity.this, pickedWord, Toast.LENGTH_LONG).show();
+
+                MarkerData temp = (MarkerData) myAdapter.getItem(i);
+
+                Toast.makeText(ListActivity.this, "Name: " + temp.getName(), Toast.LENGTH_SHORT).show();
             }
         });
     }
