@@ -1,7 +1,9 @@
 package a1stgroup.gpsalarm;
 
 
-public class MarkerData {
+import java.io.Serializable;
+
+public class MarkerData implements Serializable {
 
     private String name = "(none)";
     private double latitude;

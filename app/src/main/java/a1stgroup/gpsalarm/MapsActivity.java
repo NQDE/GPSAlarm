@@ -21,6 +21,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -121,6 +123,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             prefs.registerOnSharedPreferenceChangeListener(prefListener);
 
+            try {
+                markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, "myFile"); // Retrieve the list from internal storage
+            } catch (IOException e) {
+                Log.e("File Read error: ", e.getMessage());
+            } catch (ClassNotFoundException e) {
+                Toast.makeText(this, "Failed to retrieve list from file", Toast.LENGTH_SHORT).show();
+                Log.e("File Read error: ", e.getMessage());
+            }
+
         }
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -162,6 +173,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             changeMapType(prefs.getString("mapType", "2"));
 
+            /* TODO
+                This code deals with dragging markers and is no longer used,
+                but contains some potentially useful bits.
+
             myGoogleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
                 @Override
                 public void onMarkerDragStart(Marker marker) {
@@ -189,6 +204,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     marker.showInfoWindow();                    // This is needed in case InfoWindow is already open before moving the marker.
                 }
             });
+            */
 
             myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
@@ -199,7 +215,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     setMarker("Location", point.latitude, point.longitude);
                     /* TODO
-                    * Extract location information from marker
+                    * Put some location information into the marker
                     * */
                 }
             });
@@ -273,11 +289,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myGoogleMap.moveCamera(camUpdate);
     }
 
-    /*private void zoomToMyLocation(float zoom) {
-        CameraUpdate cameraUpdate = CameraUpdateFactory.zoomTo(zoom);
-        myGoogleMap.moveCamera(cameraUpdate);
-    }*/
-
     public void geoLocate(View view) throws IOException {
         EditText et = (EditText) findViewById(R.id.editText);
         String location = et.getText().toString();
@@ -312,7 +323,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         MarkerOptions options = new MarkerOptions()                 // This MarkerOptions object is needed to add a marker.
                 .draggable(false)
                 .title(locality)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))      // Here it is possible to specify custom icon design.
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.alarm_marker_40))      // Here it is possible to specify custom icon design.
                 .position(new LatLng(lat, lng));
 
         myMarker = myGoogleMap.addMarker(options);
@@ -371,7 +382,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void onInfoWindowLongClick(Marker marker) {
-        Toast.makeText(this, "Info Window long click", Toast.LENGTH_SHORT).show();
+        // Toast.makeText(this, "Info Window long click", Toast.LENGTH_SHORT).show();
 
         View myView = (LayoutInflater.from(this)).inflate(R.layout.dialog_inputname, null);
 
@@ -380,16 +391,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         final EditText userInput = (EditText) myView.findViewById(R.id.etxtInputName);
 
         alertBuilder.setCancelable(true)
-                .setTitle("New Alarm")
+                .setTitle("Save Alarm")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        addMarkerDataToList(userInput.getText().toString());
+                        String name = userInput.getText().toString();
+
+                        if (TextUtils.isEmpty(name) || TextUtils.getTrimmedLength(name) < 1) {
+                            Toast.makeText(MapsActivity.this, "Empty name not allowed. \nPlease try again.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        for (MarkerData markerData : markerDataList) {
+                            if (markerData.getName().equals(name)) {
+                                Toast.makeText(MapsActivity.this, "Duplicate name not allowed. \nPlease try again with a unique name.", Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                        }
+
+                        addMarkerDataToList(name);
+                        myMarker.hideInfoWindow();
                     }
                 });
         Dialog myDialog = alertBuilder.create();
         myDialog.show();
-        marker.hideInfoWindow();
     }
 
 
@@ -529,10 +554,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void addMarkerDataToList (String name) {
         MarkerData toBeAdded = new MarkerData();
         toBeAdded.setName(name);
+        toBeAdded.setLatitude(myMarker.getPosition().latitude);
+        toBeAdded.setLongitude(myMarker.getPosition().longitude);
         if (markerDataList.add(toBeAdded))
-            Toast.makeText(this, "Alarm saved.", Toast.LENGTH_SHORT).show();
+            try {
+                InternalStorage.writeObject(this, "myFile", markerDataList);
+                Toast.makeText(this, "Alarm saved", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                Toast.makeText(this, "Failed to save alarm", Toast.LENGTH_SHORT).show();
+                Log.e("IOException", e.getMessage());
+            }
         else
-            Toast.makeText(this, "Alarm not saved.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Failed to save alarm", Toast.LENGTH_SHORT).show();
     }
 
 }
