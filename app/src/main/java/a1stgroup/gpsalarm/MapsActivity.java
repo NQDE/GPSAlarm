@@ -23,11 +23,16 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,7 +64,6 @@ import java.util.List;
 
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
-
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, OnInfoWindowLongClickListener {
 
     GoogleMap myGoogleMap;
@@ -70,11 +74,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     MediaPlayer mySound;
     static String ringtonePath;
     LocationRequest myLocationRequest;  // Global variable for requesting location
-    long locationUpdateFrequency;
+    static long locationUpdateFrequency;
     public static final double earthRadius = 6372.8; // Radius of Earth, in kilometers
     private boolean stop = false;
     private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
+    TrackerAlarmReceiver alarm = new TrackerAlarmReceiver();
+    private boolean destinationReached  = false;
+    private PopupWindow pw;
+    Button closePopUp;
+
+
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -122,6 +132,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             };
 
             prefs.registerOnSharedPreferenceChangeListener(prefListener);
+            Intent mapIntent = new Intent(this, TrackerAlarmReceiver.class);
+
+            alarm.setAlarm(MapsActivity.this);
 
             try {
                 markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, "myFile"); // Retrieve the list from internal storage
@@ -132,7 +145,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.e("File Read error: ", e.getMessage());
             }
 
+
+
         }
+
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -206,6 +222,33 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             });
             */
 
+            /*myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+                @Override
+                public void onMapLongClick(LatLng point) {
+                    if (myMarker != null) {
+                        myGoogleMap.clear();
+                    }
+
+                    Geocoder gc = new Geocoder(MapsActivity.this);
+                    List<Address> list = null;
+                    try {
+                        list = gc.getFromLocation(point.latitude, point.longitude, 1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Address add = list.get(0);
+
+                    double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
+                    double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
+
+                    setMarker(add.getLocality(), roundedLatitude, roundedLongitude);
+                    *//* TODO
+                    * Put some location information into the marker
+                    * *//*
+                }
+            });*/
+
             myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
                 public void onMapLongClick(LatLng point) {
@@ -213,7 +256,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         myGoogleMap.clear();
                     }
 
-                    setMarker("Location", point.latitude, point.longitude);
+                    Geocoder gc = new Geocoder(MapsActivity.this);
+                    List<Address> list = null;
+                    try {
+                        list = gc.getFromLocation(point.latitude, point.longitude, 1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    String tempString;
+
+                    if (list.size() < 1) {                           // Prevents search from crashing on non-existent results.
+                        tempString = "Location";
+                    } else {
+                        tempString = list.get(0).getLocality();
+                    }
+
+                    double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
+                    double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
+
+                    setMarker(tempString, roundedLatitude, roundedLongitude);
                     /* TODO
                     * Put some location information into the marker
                     * */
@@ -235,7 +297,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     TextView tvLat = (TextView) v.findViewById(R.id.tv_lat);
                     TextView tvLng = (TextView) v.findViewById(R.id.tv_lng);
                     TextView tvSnippet = (TextView) v.findViewById(R.id.tv_snippet);
-
 
 
                     LatLng coordinates = marker.getPosition();
@@ -274,7 +335,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         myGoogleApiClient.connect();
 
+        if (ListActivity.selectedMarkerData != null) {
+            setMarker(ListActivity.selectedMarkerData.getName(), ListActivity.selectedMarkerData.getLatitude(), ListActivity.selectedMarkerData.getLongitude());
+        }
+
     }
+
 
 
     private void goToLocation(double lat, double lng) {
@@ -310,12 +376,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         double lat = address.getLatitude();
         double lng = address.getLongitude();
-        goToLocationZoom(lat, lng, 15);
+        double roundedLat = Math.round(lat * 100000.0) / 100000.0;
+        double roundedLng = Math.round(lng * 100000.0) / 100000.0;
+        goToLocationZoom(roundedLat, roundedLng, 15);
 
-        setMarker(locality, lat, lng);
+        setMarker(locality, roundedLat, roundedLng);
     }
 
-    private void setMarker(String locality, double lat, double lng) {
+    void setMarker(String locality, double lat, double lng) {
         if (myMarker != null) {                                      // If marker marker has a reference, remove it.
             removeEverything();
         }
@@ -443,20 +511,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Change priority to balanced
          */
         myLocationRequest.setInterval(locationUpdateFrequency);
-        myLocationRequest.setFastestInterval(locationUpdateFrequency/4);
+        myLocationRequest.setFastestInterval(locationUpdateFrequency / 4);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // /to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                        PackageManager.PERMISSION_GRANTED) {
             return;
         }
-
         LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
+    }
+
+    protected void trackLocation() {
+        myLocationRequest = LocationRequest.create();
+        myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        myLocationRequest.setInterval(100);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
+        }
     }
 
     @Override
@@ -485,28 +558,52 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (myMarker != null && !stop) {
             if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                v.vibrate(750);
+                v.vibrate(1000);
                 mySound.start();
+                if (!destinationReached) {
+                    showPopup();
+                }
+                destinationReached = true;
             }
-
         }
-
     }
+
+    private void showPopup() {
+        LayoutInflater inflater = (LayoutInflater) MapsActivity.this
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout = inflater.inflate(R.layout.screen_popup,
+                (ViewGroup) findViewById(R.id.popup_element));
+        pw = new PopupWindow(layout, 300, 370, true);
+        pw.showAtLocation(layout, Gravity.CENTER, 0, 0);
+
+        closePopUp = (Button) layout.findViewById(R.id.btn_close_popup);
+        closePopUp.setOnClickListener(cancel_button_click_listener);
+    }
+
+    private OnClickListener cancel_button_click_listener = new OnClickListener() {
+        public void onClick(View v) {
+            mySound.stop();
+            removeEverything();
+            destinationReached = false;
+            pw.dismiss();
+        }
+    };
 
     @Override
     public void onLocationChanged(Location location) {          // Called every time user changes location
 
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
-        } else {
-            detectRadius(location);
         }
+        else
+            detectRadius(location);
     }
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
+
     public Action getIndexApiAction0() {
         Thing object = new Thing.Builder()
                 .setName("Maps Page") // TODO: Define a title for the content shown.
@@ -551,7 +648,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mySound = MediaPlayer.create(this, Uri.parse(ringtonePath));
     }
 
-    public void addMarkerDataToList (String name) {
+    public void addMarkerDataToList(String name) {
         MarkerData toBeAdded = new MarkerData();
         toBeAdded.setName(name);
         toBeAdded.setLatitude(myMarker.getPosition().latitude);
