@@ -2,7 +2,6 @@ package a1stgroup.gpsalarm;
 
 
 
-import android.app.ActionBar;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.support.v7.app.AppCompatActivity;

@@ -33,4 +33,5 @@ public class MyCustomizedAdapter extends ArrayAdapter<MarkerData> {
 
         return theView;
     }
+
 }
