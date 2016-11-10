@@ -57,7 +57,6 @@ import java.util.List;
 
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
-
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, OnInfoWindowLongClickListener {
 
     GoogleMap myGoogleMap;
@@ -197,7 +196,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         myGoogleMap.clear();
                     }
 
-                    setMarker("Location", point.latitude, point.longitude);
+
+
+
+
+
+
+                    Geocoder gc = new Geocoder(MapsActivity.this);
+                    List<Address> list = null;
+                    try {
+                        list = gc.getFromLocation(point.latitude, point.longitude, 1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Address add = list.get(0);
+
+                    double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
+                    double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
+
+                    setMarker(add.getLocality(), roundedLatitude, roundedLongitude);
                     /* TODO
                     * Extract location information from marker
                     * */
@@ -219,7 +237,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     TextView tvLat = (TextView) v.findViewById(R.id.tv_lat);
                     TextView tvLng = (TextView) v.findViewById(R.id.tv_lng);
                     TextView tvSnippet = (TextView) v.findViewById(R.id.tv_snippet);
-
 
 
                     LatLng coordinates = marker.getPosition();
@@ -261,6 +278,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
+
     private void goToLocation(double lat, double lng) {
         LatLng coordinates = new LatLng(lat, lng);
         CameraUpdate camUpdate = CameraUpdateFactory.newLatLng(coordinates);
@@ -299,9 +317,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         double lat = address.getLatitude();
         double lng = address.getLongitude();
-        goToLocationZoom(lat, lng, 15);
+        double roundedLat = Math.round(lat * 100000.0) / 100000.0;
+        double roundedLng = Math.round(lng * 100000.0) / 100000.0;
+        goToLocationZoom(roundedLat, roundedLng, 15);
 
-        setMarker(locality, lat, lng);
+        setMarker(locality, roundedLat, roundedLng);
     }
 
     private void setMarker(String locality, double lat, double lng) {
@@ -418,7 +438,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Change priority to balanced
          */
         myLocationRequest.setInterval(locationUpdateFrequency);
-        myLocationRequest.setFastestInterval(locationUpdateFrequency/4);
+        myLocationRequest.setFastestInterval(locationUpdateFrequency / 4);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -526,7 +546,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mySound = MediaPlayer.create(this, Uri.parse(ringtonePath));
     }
 
-    public void addMarkerDataToList (String name) {
+    public void addMarkerDataToList(String name) {
         MarkerData toBeAdded = new MarkerData();
         toBeAdded.setName(name);
         if (markerDataList.add(toBeAdded))
