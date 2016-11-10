@@ -84,7 +84,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private PopupWindow pw;
     Button closePopUp;
 
-
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -109,7 +108,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             setLocationUpdateFrequency(Long.parseLong(prefs.getString("locationUpdateFrequency", "10000")));
             ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
             initSound();
-
 
             prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
                 public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
@@ -145,9 +143,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.e("File Read error: ", e.getMessage());
             }
 
-
-
         }
+
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -229,12 +226,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         myGoogleMap.clear();
                     }
 
-
-
-
-
-
-
                     Geocoder gc = new Geocoder(MapsActivity.this);
                     List<Address> list = null;
                     try {
@@ -249,6 +240,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
 
                     setMarker(add.getLocality(), roundedLatitude, roundedLongitude);
+
                     /* TODO
                     * Put some location information into the marker
                     * */
@@ -314,8 +306,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-
-
     private void goToLocation(double lat, double lng) {
         LatLng coordinates = new LatLng(lat, lng);
         CameraUpdate camUpdate = CameraUpdateFactory.newLatLng(coordinates);
@@ -343,7 +333,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         Address address = list.get(0);                                  // This object is filled with lots of information.
-        String locality = address.getLocality();                        // Locality here just for demonstartion purposes.
+        String locality = address.getLocality();                        // Locality here just for demonstration purposes.
 
         Toast.makeText(this, locality, Toast.LENGTH_LONG).show();
 
@@ -532,6 +522,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(1000);
+                mySound.seekTo(0);
                 mySound.start();
                 if (!destinationReached) {
                     showPopup();
