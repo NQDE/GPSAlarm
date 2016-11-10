@@ -132,6 +132,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.e("File Read error: ", e.getMessage());
             }
 
+
+
         }
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -274,6 +276,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         myGoogleApiClient.connect();
 
+        if (ListActivity.selectedMarkerData != null) {
+            setMarker(ListActivity.selectedMarkerData.getName(), ListActivity.selectedMarkerData.getLatitude(), ListActivity.selectedMarkerData.getLongitude());
+        }
+
     }
 
 
@@ -315,7 +321,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setMarker(locality, lat, lng);
     }
 
-    private void setMarker(String locality, double lat, double lng) {
+    void setMarker(String locality, double lat, double lng) {
         if (myMarker != null) {                                      // If marker marker has a reference, remove it.
             removeEverything();
         }

@@ -1,5 +1,6 @@
 package a1stgroup.gpsalarm;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -10,6 +11,8 @@ import android.widget.Toast;
 
 
 public class ListActivity extends AppCompatActivity {
+
+    static MarkerData selectedMarkerData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,14 +29,25 @@ public class ListActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                String pickedWord = "You touched " + String.valueOf(adapterView.getItemAtPosition(i));
-                Toast.makeText(ListActivity.this, pickedWord, Toast.LENGTH_LONG).show();
+              //  String pickedWord = "You touched " + String.valueOf(adapterView.getItemAtPosition(i));
+              //  Toast.makeText(ListActivity.this, pickedWord, Toast.LENGTH_LONG).show();
 
-                MarkerData temp = (MarkerData) myAdapter.getItem(i);
+                selectedMarkerData = (MarkerData) myAdapter.getItem(i);
 
-                Toast.makeText(ListActivity.this, "Name: " + temp.getName(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(ListActivity.this, "Alarm Set: " + selectedMarkerData.getName(), Toast.LENGTH_SHORT).show();
+              //  Toast.makeText(ListActivity.this, "Latitude: " + selectedMarkerData.getLatitude(), Toast.LENGTH_SHORT).show();
+              //  Toast.makeText(ListActivity.this, "Longitude: " + selectedMarkerData.getLongitude(), Toast.LENGTH_SHORT).show();
+
+                Intent myIntent = new Intent(ListActivity.this, MapsActivity.class);
+                startActivity(myIntent);
+            }
+        });
+
+        myListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                return false;
             }
         });
     }
 }
-
