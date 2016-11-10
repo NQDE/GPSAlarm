@@ -189,13 +189,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             changeMapType(prefs.getString("mapType", "2"));
 
-            /* TODO
-                This code deals with dragging markers and is no longer used,
-                but contains some potentially useful bits.
-
             myGoogleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
                 @Override
                 public void onMarkerDragStart(Marker marker) {
+                    if(myCircle != null) {
+                        myCircle.remove();
+                    }
                 }
 
                 @Override
@@ -206,6 +205,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public void onMarkerDragEnd(Marker marker) {
                     Geocoder gc = new Geocoder(MapsActivity.this);
                     LatLng coordinates = marker.getPosition();
+                    myCircle = drawCircle(coordinates);
 
                     List<Address> list = null;
 
@@ -215,12 +215,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         e.printStackTrace();
                     }
 
-                    Address addr = list.get(0);
-                    marker.setTitle(addr.getLocality());
-                    marker.showInfoWindow();                    // This is needed in case InfoWindow is already open before moving the marker.
+                    Address add = list.get(0);
+
+                    double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
+                    double roundedLongitude = Math.round(coordinates.longitude * 100000.0) / 100000.0;
+
+                    setMarker(add.getLocality(), roundedLatitude, roundedLongitude);
                 }
             });
-            */
+
 
             myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
