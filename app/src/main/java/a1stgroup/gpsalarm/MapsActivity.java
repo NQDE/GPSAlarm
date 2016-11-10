@@ -228,13 +228,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (myMarker != null) {
                         myGoogleMap.clear();
                     }
-
-
-
-
-
-
-
+                    
                     Geocoder gc = new Geocoder(MapsActivity.this);
                     List<Address> list = null;
                     try {
@@ -351,7 +345,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         double lng = address.getLongitude();
         double roundedLat = Math.round(lat * 100000.0) / 100000.0;
         double roundedLng = Math.round(lng * 100000.0) / 100000.0;
-        goToLocationZoom(roundedLat, roundedLng, 15);
+        goToLocationZoom(lat, lng, 15);
 
         setMarker(locality, roundedLat, roundedLng);
     }
@@ -362,7 +356,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         MarkerOptions options = new MarkerOptions()                 // This MarkerOptions object is needed to add a marker.
-                .draggable(false)
+                .draggable(true)
                 .title(locality)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.alarm_marker_40))      // Here it is possible to specify custom icon design.
                 .position(new LatLng(lat, lng));
