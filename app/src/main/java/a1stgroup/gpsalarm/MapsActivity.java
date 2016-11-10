@@ -48,6 +48,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnInfoWindowLongClickListener;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -56,7 +57,6 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.GoogleMap.OnInfoWindowLongClickListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -145,10 +145,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.e("File Read error: ", e.getMessage());
             }
 
-
-
         }
-
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -222,33 +219,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             });
             */
 
-            /*myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
-                @Override
-                public void onMapLongClick(LatLng point) {
-                    if (myMarker != null) {
-                        myGoogleMap.clear();
-                    }
-
-                    Geocoder gc = new Geocoder(MapsActivity.this);
-                    List<Address> list = null;
-                    try {
-                        list = gc.getFromLocation(point.latitude, point.longitude, 1);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    Address add = list.get(0);
-
-                    double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
-                    double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
-
-                    setMarker(add.getLocality(), roundedLatitude, roundedLongitude);
-                    *//* TODO
-                    * Put some location information into the marker
-                    * *//*
-                }
-            });*/
-
             myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
                 public void onMapLongClick(LatLng point) {
@@ -297,6 +267,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     TextView tvLat = (TextView) v.findViewById(R.id.tv_lat);
                     TextView tvLng = (TextView) v.findViewById(R.id.tv_lng);
                     TextView tvSnippet = (TextView) v.findViewById(R.id.tv_snippet);
+
 
 
                     LatLng coordinates = marker.getPosition();
@@ -378,7 +349,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         double lng = address.getLongitude();
         double roundedLat = Math.round(lat * 100000.0) / 100000.0;
         double roundedLng = Math.round(lng * 100000.0) / 100000.0;
-        goToLocationZoom(roundedLat, roundedLng, 15);
+        goToLocationZoom(lat, lng, 15);
 
         setMarker(locality, roundedLat, roundedLng);
     }
@@ -389,7 +360,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         MarkerOptions options = new MarkerOptions()                 // This MarkerOptions object is needed to add a marker.
-                .draggable(false)
+                .draggable(true)
                 .title(locality)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.alarm_marker_40))      // Here it is possible to specify custom icon design.
                 .position(new LatLng(lat, lng));
@@ -519,6 +490,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         PackageManager.PERMISSION_GRANTED) {
             return;
         }
+
         LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
     }
 
@@ -582,7 +554,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private OnClickListener cancel_button_click_listener = new OnClickListener() {
         public void onClick(View v) {
-            mySound.stop();
+            mySound.pause();
             removeEverything();
             destinationReached = false;
             pw.dismiss();
@@ -648,7 +620,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mySound = MediaPlayer.create(this, Uri.parse(ringtonePath));
     }
 
-    public void addMarkerDataToList(String name) {
+    public void addMarkerDataToList (String name) {
         MarkerData toBeAdded = new MarkerData();
         toBeAdded.setName(name);
         toBeAdded.setLatitude(myMarker.getPosition().latitude);
