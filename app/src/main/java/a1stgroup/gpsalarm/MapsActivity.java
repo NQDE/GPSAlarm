@@ -48,6 +48,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnInfoWindowLongClickListener;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -56,7 +57,6 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.GoogleMap.OnInfoWindowLongClickListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -549,7 +549,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private OnClickListener cancel_button_click_listener = new OnClickListener() {
         public void onClick(View v) {
-            mySound.stop();
+            mySound.pause();
             removeEverything();
             destinationReached = false;
             pw.dismiss();
