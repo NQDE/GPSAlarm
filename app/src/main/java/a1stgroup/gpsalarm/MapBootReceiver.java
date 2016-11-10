@@ -16,6 +16,8 @@ public class MapBootReceiver extends BroadcastReceiver {
         {
             alarm.setAlarm(context);
         }
+        Intent serviceIntent = new Intent(context, TrackerService.class);
+        context.startService(serviceIntent);
     }
 }
 

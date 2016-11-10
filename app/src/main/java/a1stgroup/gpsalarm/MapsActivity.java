@@ -19,10 +19,16 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -70,6 +76,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
     static long locationUpdateFrequency = 5000;
     TrackerAlarmReceiver alarm = new TrackerAlarmReceiver();
+    private boolean destinationReached  = false;
+    private PopupWindow pw;
+    Button closePopUp;
+
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -116,7 +126,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             prefs.registerOnSharedPreferenceChangeListener(prefListener);
             Intent mapIntent = new Intent(this, TrackerAlarmReceiver.class);
 
-
+            alarm.setAlarm(MapsActivity.this);
 
         }
 
@@ -193,13 +203,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         myGoogleMap.clear();
                     }
 
-                    alarm.setAlarm(MapsActivity.this);
+                    //alarm.setAlarm(MapsActivity.this);
 
                     setMarker("Location", point.latitude, point.longitude);
-                    /*myMarker = myGoogleMap.addMarker(new MarkerOptions()
-                            .position(point)
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-                    myCircle = drawCircle(point);*/
                 }
             });
 
@@ -400,7 +406,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void trackLocation() {
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        myLocationRequest.setInterval(1000);
+        myLocationRequest.setInterval(100);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
@@ -433,20 +439,45 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (myMarker != null && !stop) {
             if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                v.vibrate(750);
+                v.vibrate(1000);
                 mySound.start();
+                if (!destinationReached) {
+                    showPopup();
+                }
+                destinationReached = true;
             }
         }
     }
+
+    private void showPopup() {
+        LayoutInflater inflater = (LayoutInflater) MapsActivity.this
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout = inflater.inflate(R.layout.screen_popup,
+                (ViewGroup) findViewById(R.id.popup_element));
+        pw = new PopupWindow(layout, 300, 370, true);
+        pw.showAtLocation(layout, Gravity.CENTER, 0, 0);
+
+        closePopUp = (Button) layout.findViewById(R.id.btn_close_popup);
+        closePopUp.setOnClickListener(cancel_button_click_listener);
+    }
+
+    private OnClickListener cancel_button_click_listener = new OnClickListener() {
+        public void onClick(View v) {
+            mySound.stop();
+            removeEverything();
+            destinationReached = false;
+            pw.dismiss();
+        }
+    };
 
     @Override
     public void onLocationChanged(Location location) {          // Called every time user changes location
 
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
-        } else {
-            detectRadius(location);
         }
+        else
+            detectRadius(location);
     }
 
     /**
