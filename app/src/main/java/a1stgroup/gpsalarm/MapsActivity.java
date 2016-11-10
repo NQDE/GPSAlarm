@@ -186,39 +186,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             changeMapType(prefs.getString("mapType", "2"));
 
-            /* TODO
-                This code deals with dragging markers and is no longer used,
-                but contains some potentially useful bits.
-
-            myGoogleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
-                @Override
-                public void onMarkerDragStart(Marker marker) {
-                }
-
-                @Override
-                public void onMarkerDrag(Marker marker) {
-                }
-
-                @Override
-                public void onMarkerDragEnd(Marker marker) {
-                    Geocoder gc = new Geocoder(MapsActivity.this);
-                    LatLng coordinates = marker.getPosition();
-
-                    List<Address> list = null;
-
-                    try {
-                        list = gc.getFromLocation(coordinates.latitude, coordinates.longitude, 1);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    Address addr = list.get(0);
-                    marker.setTitle(addr.getLocality());
-                    marker.showInfoWindow();                    // This is needed in case InfoWindow is already open before moving the marker.
-                }
-            });
-            */
-
             myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
                 public void onMapLongClick(LatLng point) {
@@ -226,29 +193,28 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         myGoogleMap.clear();
                     }
 
-                    Geocoder gc = new Geocoder(MapsActivity.this);
-                    List<Address> list = null;
-                    try {
-                        list = gc.getFromLocation(point.latitude, point.longitude, 1);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    String tempString;
-
-                    if (list.size() < 1) {                           // Prevents search from crashing on non-existent results.
-                        tempString = "Location";
-                    } else {
-                        tempString = list.get(0).getLocality();
-                    }
-
                     double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
 
-                    setMarker(tempString, roundedLatitude, roundedLongitude);
-                    /* TODO
-                    * Put some location information into the marker
-                    * */
+                    setMarker("Location", roundedLatitude, roundedLongitude);
+
+//                     TODO
+//                    A robust implementation of getting location information and passing it to a user-added marker.
+//                    Our implementation (below) works most of the time, but makes adding markers dependent on web-connectivity
+//                    and slow on some devices.
+//
+//                    Geocoder gc = new Geocoder(MapsActivity.this);
+//                    List<Address> list = null;
+//                    try {
+//                        list = gc.getFromLocation(point.latitude, point.longitude, 1);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    if (list != null && list.size() > 0) {                           // Prevents from crashing on non-existent results.
+//                        myMarker.setTitle(list.get(0).getLocality());
+//                    }
+
                 }
             });
 
@@ -341,7 +307,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         Address address = list.get(0);                                  // This object is filled with lots of information.
-        String locality = address.getLocality();                        // Locality here just for demonstartion purposes.
+        String locality = address.getLocality();
 
         Toast.makeText(this, locality, Toast.LENGTH_LONG).show();
 
@@ -355,7 +321,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     void setMarker(String locality, double lat, double lng) {
-        if (myMarker != null) {                                      // If marker marker has a reference, remove it.
+        if (myMarker != null) {                                      // If marker has a reference, remove it.
             removeEverything();
         }
 
@@ -531,6 +497,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(1000);
+                mySound.seekTo(0);
                 mySound.start();
                 if (!destinationReached) {
                     showPopup();
