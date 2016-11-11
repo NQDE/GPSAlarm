@@ -13,7 +13,7 @@ Application requires an active GPS uplink, and having a network connection is a 
 
 # Installation
 
-Clone the repository and compile it for your device using Android Studio or use this download link for the .APK file:
+Clone the repository and compile it for your device using Android Studio or use this download link for the .APK file: https://www.dropbox.com/s/yeqxvs61k1xf1gf/GPSAlarm.apk?dl=0
 
 # Instructions
 
