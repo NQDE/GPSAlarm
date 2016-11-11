@@ -9,18 +9,21 @@
 
     <EditText
         android:layout_width="match_parent"
+        android:inputType="text"
         android:layout_height="wrap_content"
         android:id="@+id/editText"
         android:hint="@string/hint_search"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="center_horizontal"
+        android:lines="1"
+        android:imeOptions="actionDone" />
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
         android:text="@string/search_button_text"
         android:id="@+id/button"
         android:onClick="geoLocate"
-        android:layout_gravity="center_horizontal"/>
+        android:layout_gravity="center_horizontal"
+        android:layout_height="wrap_content" />
 
     <fragment
         android:layout_width="match_parent"

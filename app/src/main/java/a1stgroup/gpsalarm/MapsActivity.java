@@ -63,6 +63,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
+import static java.security.AccessController.getContext;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, OnInfoWindowLongClickListener {
 
@@ -249,6 +250,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             myGoogleMap.setOnInfoWindowLongClickListener(this);
 
+
         }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -272,17 +274,33 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         myGoogleApiClient.connect();
 
-        if (ListActivity.selectedMarkerData != null) {
+        if (ListActivity.selectedMarkerData != null && ListActivity.selectedMarkerData.isReal()) {
             setMarker(ListActivity.selectedMarkerData.getName(), ListActivity.selectedMarkerData.getLatitude(), ListActivity.selectedMarkerData.getLongitude());
         }
 
+        centerMap();
+
     }
 
+    private void centerMap() {
 
+        Location location = myGoogleMap.getMyLocation();
 
-    private void goToLocation(double lat, double lng) {
-        LatLng coordinates = new LatLng(lat, lng);
-        CameraUpdate camUpdate = CameraUpdateFactory.newLatLng(coordinates);
+        if (myMarker != null) {
+            LatLng myLocation = new LatLng(myMarker.getPosition().latitude, myMarker.getPosition().longitude);
+            myGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
+        }
+        else if (location != null) {
+            LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
+            myGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
+        } else {
+            goToEurope();
+        }
+    }
+
+    private void goToEurope() {
+        LatLng coordinates = new LatLng(56.54204, 13.36096);
+        CameraUpdate camUpdate = CameraUpdateFactory.newLatLngZoom(coordinates, 3);
         myGoogleMap.moveCamera(camUpdate);
     }
 
@@ -326,7 +344,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         MarkerOptions options = new MarkerOptions()                 // This MarkerOptions object is needed to add a marker.
-                .draggable(true)
+                .draggable(false)                                   // Disabled until fixed
                 .title(locality)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.alarm_marker_40))      // Here it is possible to specify custom icon design.
                 .position(new LatLng(lat, lng));
@@ -374,10 +392,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         switch (item.getItemId()) {
             case R.id.menuItemMyAlarms:
                 Intent i = new Intent(this, ListActivity.class);
+                if (myMarker != null) {
+                    ListActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
+                    ListActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                }
                 startActivity(i);
                 return true;
             case R.id.menuItemSettings:
                 Intent j = new Intent(this, MyPreferencesActivity.class);
+                if (myMarker != null) {
+                    ListActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
+                    ListActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                }
                 startActivity(j);
                 return true;
             default:
@@ -592,17 +618,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         toBeAdded.setName(name);
         toBeAdded.setLatitude(myMarker.getPosition().latitude);
         toBeAdded.setLongitude(myMarker.getPosition().longitude);
-        if (markerDataList.add(toBeAdded))
-            try {
-                InternalStorage.writeObject(this, "myFile", markerDataList);
+        if (markerDataList.add(toBeAdded)) {
+            if(saveMarkerDataList())
                 Toast.makeText(this, "Alarm saved", Toast.LENGTH_SHORT).show();
-            } catch (IOException e) {
-                Toast.makeText(this, "Failed to save alarm", Toast.LENGTH_SHORT).show();
-                Log.e("IOException", e.getMessage());
-            }
+            else
+                Toast.makeText(this, "File write failed", Toast.LENGTH_SHORT).show();
+        }
         else
-            Toast.makeText(this, "Failed to save alarm", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Failed to add alarm to list", Toast.LENGTH_SHORT).show();
     }
 
+    private boolean saveMarkerDataList() {
+        try {
+            InternalStorage.writeObject(this, "myFile", markerDataList);
+            return true;
+        } catch (IOException e) {
+            Toast.makeText(this, "Failed to save alarm", Toast.LENGTH_SHORT).show();
+            Log.e("IOException", e.getMessage());
+        }
+        return false;
+    }
 }
-

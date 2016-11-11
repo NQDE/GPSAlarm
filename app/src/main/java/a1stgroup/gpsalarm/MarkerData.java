@@ -5,8 +5,8 @@ import java.io.Serializable;
 
 public class MarkerData implements Serializable {
 
-    private String name = "(none)";
-    private double latitude;
+    private String name = "Location";
+    private double latitude = 100.1;
     private double longitude;
 
     public String getName() {
@@ -31,5 +31,9 @@ public class MarkerData implements Serializable {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public boolean isReal() {
+        return latitude < 100.0;
     }
 }

@@ -5,25 +5,28 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.Map;
 
 
 public class ListActivity extends AppCompatActivity {
 
-    static MarkerData selectedMarkerData;
+    static MarkerData selectedMarkerData = new MarkerData();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
-        final ListAdapter myAdapter = new MyCustomizedAdapter(this, MapsActivity.markerDataList);
+        final ArrayAdapter myAdapter = new MyCustomizedAdapter(this, MapsActivity.markerDataList);
 
         final ListView myListView = (ListView) findViewById(R.id.idOfListView);
 
@@ -50,18 +53,16 @@ public class ListActivity extends AppCompatActivity {
         myListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int i, long l) {
-                /*AlertDialog.Builder alert = new AlertDialog.Builder(ListActivity.this);
+                AlertDialog.Builder alert = new AlertDialog.Builder(ListActivity.this);
                 alert.setMessage("Are you sure you want to delete this?");
                 alert.setCancelable(false);
                 alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        *//*ArrayAdapter yourArrayAdapter = (ArrayAdapter) arg0.getAdapter();
-                        yourArrayAdapter.remove(position);
-                        yourArrayAdapter.notifyDataSetChanged();
-                        ()*//*
                         MapsActivity.markerDataList.remove(i);
+                        myAdapter.notifyDataSetChanged();
+                        saveMarkerDataList();
                     }
                 });
 
@@ -72,11 +73,22 @@ public class ListActivity extends AppCompatActivity {
                         dialog.cancel();
 
                     }
-                });*/
-                MapsActivity.markerDataList.remove(i);
+                });
+                alert.show();
 
                 return true;
             }
         });
+    }
+
+    private boolean saveMarkerDataList() {
+        try {
+            InternalStorage.writeObject(this, "myFile", MapsActivity.markerDataList);
+            return true;
+        } catch (IOException e) {
+            Toast.makeText(this, "Failed to save alarm", Toast.LENGTH_SHORT).show();
+            Log.e("IOException", e.getMessage());
+        }
+        return false;
     }
 }
