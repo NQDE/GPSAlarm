@@ -548,8 +548,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     protected void trackLocation() {
         myLocationRequest = LocationRequest.create();
-        myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        myLocationRequest.setInterval(100);
+        myLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        myLocationRequest.setInterval(locationUpdateFrequency);
+        myLocationRequest.setFastestInterval(locationUpdateFrequency/4);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
