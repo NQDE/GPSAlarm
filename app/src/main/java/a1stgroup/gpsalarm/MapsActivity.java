@@ -218,7 +218,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(coordinates.longitude * 100000.0) / 100000.0;
 
-                    setMarker(add.getLocality(), roundedLatitude, roundedLongitude);
+                    setMarker("Location", roundedLatitude, roundedLongitude);
                 }
             });
 
