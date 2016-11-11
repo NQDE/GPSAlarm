@@ -187,6 +187,41 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             changeMapType(prefs.getString("mapType", "2"));
 
+            myGoogleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+                @Override
+                public void onMarkerDragStart(Marker marker) {
+                    if(myCircle != null) {
+                        myCircle.remove();
+                    }
+                }
+
+                @Override
+                public void onMarkerDrag(Marker marker) {
+                }
+
+                @Override
+                public void onMarkerDragEnd(Marker marker) {
+                    Geocoder gc = new Geocoder(MapsActivity.this);
+                    LatLng coordinates = marker.getPosition();
+                    myCircle = drawCircle(coordinates);
+
+                    List<Address> list = null;
+
+                    try {
+                        list = gc.getFromLocation(coordinates.latitude, coordinates.longitude, 1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Address add = list.get(0);
+
+                    double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
+                    double roundedLongitude = Math.round(coordinates.longitude * 100000.0) / 100000.0;
+
+                    setMarker(add.getLocality(), roundedLatitude, roundedLongitude);
+                }
+            });
+
             myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
                 public void onMapLongClick(LatLng point) {
@@ -194,28 +229,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         myGoogleMap.clear();
                     }
 
+                    Geocoder gc = new Geocoder(MapsActivity.this);
+                    List<Address> list = null;
+                    try {
+                        list = gc.getFromLocation(point.latitude, point.longitude, 1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Address add = list.get(0);
+
                     double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
 
-                    setMarker("Location", roundedLatitude, roundedLongitude);
-
-//                     TODO
-//                    A robust implementation of getting location information and passing it to a user-added marker.
-//                    Our implementation (below) works most of the time, but makes adding markers dependent on web-connectivity
-//                    and slow on some devices.
-//
-//                    Geocoder gc = new Geocoder(MapsActivity.this);
-//                    List<Address> list = null;
-//                    try {
-//                        list = gc.getFromLocation(point.latitude, point.longitude, 1);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                    if (list != null && list.size() > 0) {                           // Prevents from crashing on non-existent results.
-//                        myMarker.setTitle(list.get(0).getLocality());
-//                    }
-
+                    setMarker(add.getLocality(), roundedLatitude, roundedLongitude);
+                    /* TODO
+                    * Put some location information into the marker
+                    * */
                 }
             });
 
@@ -344,7 +374,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         MarkerOptions options = new MarkerOptions()                 // This MarkerOptions object is needed to add a marker.
-                .draggable(false)
+                .draggable(true)
                 .title(locality)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.alarm_marker_40))      // Here it is possible to specify custom icon design.
                 .position(new LatLng(lat, lng));
