@@ -205,7 +205,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     LatLng coordinates = marker.getPosition();
                     myCircle = drawCircle(coordinates);
 
-                    List<Address> list = null;
+                   /* TODO:
+                    Useful but unstable feature of passing location information to InfoWindow on DragEnd
+                   List<Address> list = null;
 
                     try {
                         list = gc.getFromLocation(coordinates.latitude, coordinates.longitude, 1);
@@ -213,7 +215,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         e.printStackTrace();
                     }
 
-                    Address add = list.get(0);
+                    Address add = list.get(0);*/
 
                     double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(coordinates.longitude * 100000.0) / 100000.0;
@@ -229,6 +231,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         myGoogleMap.clear();
                     }
 
+                    /* TODO:
+                    Useful but unstable feature of passing location information to InfoWindow on Long Click
+
                     Geocoder gc = new Geocoder(MapsActivity.this);
                     List<Address> list = null;
                     try {
@@ -237,7 +242,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         e.printStackTrace();
                     }
 
-                    Address add = list.get(0);
+                    Address add = list.get(0);*/
 
                     double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
