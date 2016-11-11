@@ -146,7 +146,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.e("File Read error: ", e.getMessage());
             }
 
+
+
         }
+
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -187,35 +190,66 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             changeMapType(prefs.getString("mapType", "2"));
 
+            myGoogleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+                @Override
+                public void onMarkerDragStart(Marker marker) {
+                    if(myCircle != null) {
+                        myCircle.remove();
+                    }
+                }
+
+                @Override
+                public void onMarkerDrag(Marker marker) {
+                }
+
+                @Override
+                public void onMarkerDragEnd(Marker marker) {
+                    Geocoder gc = new Geocoder(MapsActivity.this);
+                    LatLng coordinates = marker.getPosition();
+                    myCircle = drawCircle(coordinates);
+
+                    List<Address> list = null;
+
+                    try {
+                        list = gc.getFromLocation(coordinates.latitude, coordinates.longitude, 1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Address add = list.get(0);
+
+                    double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
+                    double roundedLongitude = Math.round(coordinates.longitude * 100000.0) / 100000.0;
+
+                    setMarker(add.getLocality(), roundedLatitude, roundedLongitude);
+                }
+            });
+
+
             myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
                 public void onMapLongClick(LatLng point) {
                     if (myMarker != null) {
                         myGoogleMap.clear();
                     }
+                    
+                    Geocoder gc = new Geocoder(MapsActivity.this);
+                    List<Address> list = null;
+                    try {
+                        list = gc.getFromLocation(point.latitude, point.longitude, 1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Address add = list.get(0);
 
                     double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
 
-                    setMarker("Location", roundedLatitude, roundedLongitude);
-
-//                     TODO
-//                    A robust implementation of getting location information and passing it to a user-added marker.
-//                    Our implementation (below) works most of the time, but makes adding markers dependent on web-connectivity
-//                    and slow on some devices.
-//
-//                    Geocoder gc = new Geocoder(MapsActivity.this);
-//                    List<Address> list = null;
-//                    try {
-//                        list = gc.getFromLocation(point.latitude, point.longitude, 1);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                    if (list != null && list.size() > 0) {                           // Prevents from crashing on non-existent results.
-//                        myMarker.setTitle(list.get(0).getLocality());
-//                    }
-
+                    setMarker(add.getLocality(), roundedLatitude, roundedLongitude);
+                    /* TODO
+                    * Put some location information into the marker
+                    * */
                 }
             });
 
@@ -234,7 +268,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     TextView tvLat = (TextView) v.findViewById(R.id.tv_lat);
                     TextView tvLng = (TextView) v.findViewById(R.id.tv_lng);
                     TextView tvSnippet = (TextView) v.findViewById(R.id.tv_snippet);
-
 
 
                     LatLng coordinates = marker.getPosition();
@@ -325,7 +358,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         Address address = list.get(0);                                  // This object is filled with lots of information.
-        String locality = address.getLocality();
+        String locality = address.getLocality();                        // Locality here just for demonstartion purposes.
 
         Toast.makeText(this, locality, Toast.LENGTH_LONG).show();
 
@@ -339,7 +372,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     void setMarker(String locality, double lat, double lng) {
-        if (myMarker != null) {                                      // If marker has a reference, remove it.
+        if (myMarker != null) {                                      // If marker marker has a reference, remove it.
             removeEverything();
         }
 
@@ -482,7 +515,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         PackageManager.PERMISSION_GRANTED) {
             return;
         }
-
         LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
     }
 
@@ -523,7 +555,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(1000);
-                mySound.seekTo(0);
                 mySound.start();
                 if (!destinationReached) {
                     showPopup();
@@ -613,7 +644,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mySound = MediaPlayer.create(this, Uri.parse(ringtonePath));
     }
 
-    public void addMarkerDataToList (String name) {
+    public void addMarkerDataToList(String name) {
         MarkerData toBeAdded = new MarkerData();
         toBeAdded.setName(name);
         toBeAdded.setLatitude(myMarker.getPosition().latitude);
