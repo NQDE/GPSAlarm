@@ -441,6 +441,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 startActivity(j);
                 return true;
+            case R.id.menuItemHelp:
+                Intent k = new Intent(this, MyHelpActivity.class);
+                if (myMarker != null) {
+                    ListActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
+                    ListActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                }
+                startActivity(k);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

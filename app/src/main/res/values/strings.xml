@@ -7,4 +7,7 @@
     <string name="search_button_text">Search</string>
     <string name="menu_item_my_alarms">My Alarms</string>
     <string name="hint_enter_name">Enter name</string>
+    <string name="menu_item_help">Help</string>
+    <string name="helpText">aaa</string>
+
 </resources>

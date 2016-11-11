@@ -44,6 +44,10 @@
             android:name=".ListActivity"
             android:parentActivityName=".MapsActivity"
             android:label="My Alarms"/>
+        <activity
+            android:name=".MyHelpActivity"
+            android:parentActivityName=".MapsActivity"
+            android:label="Help"/>
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
