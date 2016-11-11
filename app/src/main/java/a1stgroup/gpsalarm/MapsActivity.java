@@ -9,10 +9,13 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
+import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
@@ -52,6 +55,7 @@ import com.google.android.gms.maps.GoogleMap.OnInfoWindowLongClickListener;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -84,6 +88,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean destinationReached  = false;
     private PopupWindow pw;
     Button closePopUp;
+    LocationManager locationManager;
+    LatLng latLng;
+    //private GoogleApiClient client;
+    private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
 
 
     /**
@@ -101,6 +113,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+            buildAlertMessageNoGps();
+        }
         if (googleServicesAvailable()) {
             setContentView(R.layout.activity_maps);
             initMap();
@@ -190,7 +205,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             myGoogleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
                 @Override
                 public void onMarkerDragStart(Marker marker) {
-                    if(myCircle != null) {
+                    if (myCircle != null) {
                         myCircle.remove();
                     }
                 }
@@ -271,7 +286,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     TextView tvSnippet = (TextView) v.findViewById(R.id.tv_snippet);
 
 
-
                     LatLng coordinates = marker.getPosition();
 
                     tvLocality.setText(marker.getTitle());
@@ -288,35 +302,40 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            myGoogleMap.setMyLocationEnabled(true);
+            myGoogleApiClient = new GoogleApiClient.Builder(this)       // This code is for updating current location
+                    .addApi(LocationServices.API)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .build();
+            myGoogleApiClient.connect();
+            zoom(15, 90, 40);
+            if (ListActivity.selectedMarkerData != null && ListActivity.selectedMarkerData.isReal()) {
+                setMarker(ListActivity.selectedMarkerData.getName(), ListActivity.selectedMarkerData.getLatitude(), ListActivity.selectedMarkerData.getLongitude());
+            }
+            centerMap();
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_FINE_LOCATIONS);
+            }
         }
-
-        myGoogleMap.setMyLocationEnabled(true);
-
-        myGoogleApiClient = new GoogleApiClient.Builder(this)       // This code is for updating current location
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-
-        myGoogleApiClient.connect();
-
-        if (ListActivity.selectedMarkerData != null && ListActivity.selectedMarkerData.isReal()) {
-            setMarker(ListActivity.selectedMarkerData.getName(), ListActivity.selectedMarkerData.getLatitude(), ListActivity.selectedMarkerData.getLongitude());
-        }
-
-        centerMap();
-
     }
-
+    private void zoom(float zoom, float bearing, float tilt) {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {            Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+            if (location != null)
+            {
+                myGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));                CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
+                    .zoom(zoom)                   // Sets the zoom
+                    .bearing(bearing)                // Sets the orientation of the camera to east
+                    .tilt(tilt)                   // Sets the tilt of the camera to 30 degrees
+                    .build();                   // Creates a CameraPosition from the builder
+                myGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            }        }
+    }
     private void centerMap() {
 
         Location location = myGoogleMap.getMyLocation();
@@ -519,11 +538,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myLocationRequest.setInterval(locationUpdateFrequency);
         myLocationRequest.setFastestInterval(locationUpdateFrequency / 4);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
-                PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
-                        PackageManager.PERMISSION_GRANTED) {
-            return;
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
         }
 
         LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
@@ -680,5 +697,41 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.e("IOException", e.getMessage());
         }
         return false;
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case MY_PERMISSION_FINE_LOCATIONS :
+                if (grantResults[0] == getPackageManager().PERMISSION_GRANTED) {
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {                        myGoogleMap.setMyLocationEnabled(true);                        myGoogleApiClient = new GoogleApiClient.Builder(this)       // This code is for updating current location
+                            .addApi(LocationServices.API)
+                            .addConnectionCallbacks(this)
+                            .addOnConnectionFailedListener(this)
+                            .build();                        myGoogleApiClient.connect();
+                    }                }
+                else{
+                    Toast.makeText(getApplicationContext(),"this app requires location permissions to be granted", Toast.LENGTH_LONG).show();
+                    finish();
+                }
+                break;
+        }
+    }
+    private void buildAlertMessageNoGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
     }
 }
