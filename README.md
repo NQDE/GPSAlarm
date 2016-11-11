@@ -32,8 +32,6 @@ Clone the repository and compile it for your device using Android Studio or use 
   
 # Planned features
 
-Power management optimization - currently the app consumes too much power for the amount of operations done; plans are to utilize a dynamic refresh rate that starts low and increases with distance traveled towards the target, up to the set refresh rate.
-
 A cleaner UI - at the current iteration, the UI still needs more unification in terms of design.
 
 A notification in the taskbar for clarity.
